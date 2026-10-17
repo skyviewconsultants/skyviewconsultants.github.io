@@ -307,29 +307,29 @@ function populateUniversityFilters(){
  const loc=document.getElementById('uniLocation'); locations.forEach(x=>loc.insertAdjacentHTML('beforeend',`<option>${x}</option>`));
  const uni=document.getElementById('courseUniversity'); universities.forEach(x=>uni.insertAdjacentHTML('beforeend',`<option>${x.name}</option>`));
 }
-function displayCourses(list){
+function displayCourses(list, selectedLevel=''){
  const box=document.getElementById('courseResults');document.getElementById('courseCount').textContent=`${list.length} ${list.length===1?'option':'options'}`;
  if(!list.length){box.innerHTML='<div class="empty">No matching course area found. Try changing your filters.</div>';return}
- box.innerHTML=list.map(c=>`<article class="result-card"><h3>${c.title}</h3><p>${c.description}</p><div class="chips">${c.levels.map(l=>`<span class="chip">${l}</span>`).join('')}</div><p><strong>Universities:</strong> ${c.universities.slice(0,6).join(', ')}</p><button class="btn btn-blue" onclick="requestCourseConsultation('${c.subject.replace(/'/g,"\\'")}')">Ask About This Course</button></article>`).join('');
+ box.innerHTML=list.map(c=>{const shownLevels=selectedLevel?[selectedLevel]:c.levels;return `<article class="result-card"><h3>${c.title}</h3><p>${c.description}</p><div class="chips">${shownLevels.map(l=>`<span class="chip">${l}</span>`).join('')}</div><p><strong>Universities:</strong> ${c.universities.slice(0,6).join(', ')}</p><button class="btn btn-blue" onclick="requestCourseConsultation('${c.subject.replace(/'/g,"\\'")}')">Ask About This Course</button></article>`}).join('');
 }
 function filterCourses(){
  const search=document.getElementById('courseSearch').value.toLowerCase().trim();const level=document.getElementById('courseLevel').value;const subject=document.getElementById('courseSubject').value;const university=document.getElementById('courseUniversity').value;
- const filtered=courses.filter(c=>{const searchable=`${c.title} ${c.subject} ${c.description} ${c.keywords}`.toLowerCase();return (!search||searchable.includes(search))&&(!level||c.levels.includes(level))&&(!subject||c.subject===subject)&&(!university||c.universities.includes(university))});displayCourses(filtered);
+ const filtered=courses.filter(c=>{const searchable=`${c.title} ${c.subject} ${c.description} ${c.keywords}`.toLowerCase();return (!search||searchable.includes(search))&&(!level||c.levels.includes(level))&&(!subject||c.subject===subject)&&(!university||c.universities.includes(university))});displayCourses(filtered,level);
 }
 function clearCourseSearch(){['courseSearch','courseLevel','courseSubject','courseUniversity'].forEach(id=>document.getElementById(id).value='');displayCourses(courses)}
 ['courseSearch','courseLevel','courseSubject','courseUniversity'].forEach(id=>{document.getElementById(id).addEventListener('input',filterCourses);document.getElementById(id).addEventListener('change',filterCourses)});
 function requestCourseConsultation(subject){document.getElementById('interest').value='Course Selection';document.getElementById('subject').value=subject;document.getElementById('consultationForm').scrollIntoView({behavior:'smooth'})}
 
-function displayUniversities(list){
+function displayUniversities(list, selectedSubject=''){
  const box=document.getElementById('universityResults');document.getElementById('uniCount').textContent=`${list.length} ${list.length===1?'university':'universities'}`;
  if(!list.length){box.innerHTML='<div class="empty">No matching university found. Try changing your filters.</div>';return}
- box.innerHTML=list.map(u=>`<article class="result-card uni-card"><div class="uni-top"><img class="university-logo" src="${logoUrl(u.domain)}" alt="${u.name} logo"><div><h3>${u.name}</h3><p>${u.location}</p></div></div><p style="margin-top:13px">${u.description}</p><div class="chips">${u.subjects.map(s=>`<span class="chip">${s}</span>`).join('')}</div><button class="btn btn-blue" onclick="findUniversityCourses('${u.name.replace(/'/g,"\\'")}')">Find Courses</button><a class="btn btn-light" href="apply.html?university=${encodeURIComponent(u.name)}">Apply Now</a></article>`).join('');
+ box.innerHTML=list.map(u=>{const visibleSubjects=selectedSubject?u.subjects.filter(s=>s===selectedSubject):u.subjects;return `<article class="result-card uni-card"><div class="uni-top"><img class="university-logo" src="${logoUrl(u.domain)}" alt="${u.name} logo"><div><h3>${u.name}</h3><p>${u.location}</p></div></div><p style="margin-top:13px">${u.description}</p><div class="chips">${visibleSubjects.map(s=>`<span class="chip">${s}</span>`).join('')}</div><button class="btn btn-blue" onclick="findUniversityCourses('${u.name.replace(/'/g,"\\'")}')">Find Courses</button><a class="btn btn-light" href="apply.html?university=${encodeURIComponent(u.name)}">Apply Now</a></article>`}).join('');
 }
 function filterUniversities(){
  const search=document.getElementById('uniSearch').value.toLowerCase().trim();const location=document.getElementById('uniLocation').value;const subject=document.getElementById('uniSubject').value;const level=document.getElementById('uniLevel').value;
- displayUniversities(universities.filter(u=>{const searchable=`${u.name} ${u.location} ${u.subjects.join(' ')}`.toLowerCase();return (!search||searchable.includes(search))&&(!location||u.location===location)&&(!subject||u.subjects.includes(subject))&&(!level||u.levels.includes(level))}));
+ const matching=universities.filter(u=>{const searchable=`${u.name} ${u.location} ${u.subjects.join(' ')}`.toLowerCase();return (!search||searchable.includes(search))&&(!location||u.location===location)&&(!subject||u.subjects.includes(subject))&&(!level||u.levels.includes(level))});displayUniversities(matching,subject);
 }
-function clearUniversitySearch(){document.getElementById('uniSearch').value='';document.getElementById('uniLocation').value='';document.getElementById('uniSubject').value='';document.getElementById('uniLevel').value='';displayUniversities(universities)}
+function clearUniversitySearch(){document.getElementById('uniSearch').value='';document.getElementById('uniLocation').value='';document.getElementById('uniSubject').value='';document.getElementById('uniLevel').value='';displayUniversities(universities, '')}
 ['uniSearch','uniLocation','uniSubject','uniLevel'].forEach(id=>{document.getElementById(id).addEventListener('input',filterUniversities);document.getElementById(id).addEventListener('change',filterUniversities)});
 function findUniversityCourses(name){document.getElementById('courseUniversity').value=name;document.getElementById('courses').scrollIntoView({behavior:'smooth'});filterCourses()}
 
